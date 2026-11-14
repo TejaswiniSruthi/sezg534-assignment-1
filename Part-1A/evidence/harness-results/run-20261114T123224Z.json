@@ -1,0 +1,105 @@
+{
+  "run_id": "run-20261114T123224Z",
+  "started_utc": "2026-11-14T12:32:24+00:00",
+  "python": "3.10.12",
+  "platform": "Linux",
+  "tools": {
+    "ruff": "ruff 0.17.5",
+    "bandit": "__main__.py 1.9.4",
+    "pytest": "pytest 9.2.0"
+  },
+  "source_files": [],
+  "gates": [
+    {
+      "id": "G1",
+      "name": "Syntax & Lint Guard",
+      "tool": "ruff",
+      "command": "-m ruff check src tests --config /sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/.harness/ruff.toml --output-format json --no-cache",
+      "status": "FAIL",
+      "exit_code": 1,
+      "summary": "4 violation(s)",
+      "findings": [
+        {
+          "rule": "I001",
+          "location": "tests/unit/test_models.py:3",
+          "expected": "no violation of the committed Ruff rule set",
+          "observed": "Import block is un-sorted or un-formatted"
+        },
+        {
+          "rule": "I001",
+          "location": "tests/unit/test_service.py:3",
+          "expected": "no violation of the committed Ruff rule set",
+          "observed": "Import block is un-sorted or un-formatted"
+        },
+        {
+          "rule": "I001",
+          "location": "tests/unit/test_storage.py:3",
+          "expected": "no violation of the committed Ruff rule set",
+          "observed": "Import block is un-sorted or un-formatted"
+        },
+        {
+          "rule": "no-source",
+          "location": "src/",
+          "expected": "production code to check",
+          "observed": "no .py file under src/"
+        }
+      ]
+    },
+    {
+      "id": "G2",
+      "name": "Security / SAST Guard",
+      "tool": "bandit",
+      "command": "-m bandit -r src -c /sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/.harness/bandit.yaml -f json -q",
+      "status": "FAIL",
+      "exit_code": 0,
+      "summary": "1 finding(s)",
+      "findings": [
+        {
+          "rule": "no-source",
+          "location": "src/",
+          "expected": "production code to scan",
+          "observed": "no .py file under src/"
+        }
+      ]
+    },
+    {
+      "id": "G3",
+      "name": "Unit & Contract Tests",
+      "tool": "pytest",
+      "command": "-m pytest tests -q --junitxml=<temp>",
+      "status": "FAIL",
+      "exit_code": 2,
+      "summary": "0 passed, 0 failed, 3 errors, 0 skipped of 3",
+      "counts": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 3,
+        "skipped": 0
+      },
+      "findings": [
+        {
+          "rule": "test-error",
+          "location": "::tests.unit.test_models",
+          "expected": "test passes (assertion derived from the specification)",
+          "observed": "collection failure",
+          "detail": "ImportError while importing test module '/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/tests/unit/test_models.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/usr/lib/python3.10/importlib/__init__.py:126: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\ntests/unit/test_models.py:5: in <module>\n    from todo.errors import (\nE   ModuleNotFoundError: No module named 'todo.errors'"
+        },
+        {
+          "rule": "test-error",
+          "location": "::tests.unit.test_service",
+          "expected": "test passes (assertion derived from the specification)",
+          "observed": "collection failure",
+          "detail": "ImportError while importing test module '/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/tests/unit/test_service.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/usr/lib/python3.10/importlib/__init__.py:126: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\ntests/unit/test_service.py:5: in <module>\n    from todo.errors import (\nE   ModuleNotFoundError: No module named 'todo.errors'"
+        },
+        {
+          "rule": "test-error",
+          "location": "::tests.unit.test_storage",
+          "expected": "test passes (assertion derived from the specification)",
+          "observed": "collection failure",
+          "detail": "ImportError while importing test module '/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/tests/unit/test_storage.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/usr/lib/python3.10/importlib/__init__.py:126: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\ntests/unit/test_storage.py:7: in <module>\n    from todo.errors import StorageError\nE   ModuleNotFoundError: No module named 'todo.errors'"
+        }
+      ]
+    }
+  ],
+  "overall": "FAIL"
+}

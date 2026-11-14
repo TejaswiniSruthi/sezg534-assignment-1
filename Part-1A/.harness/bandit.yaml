@@ -1,0 +1,2 @@
+# G2 Security / SAST Guard. All Bandit tests are enabled; nothing is skipped.
+skips: []

@@ -122,6 +122,8 @@ compare the returned ids with the exact expected sequence.
 - The data file exists but cannot be understood: a storage error, file untouched (FR-014).
 - Deleting or changing a task id that does not exist reports "not found" and changes nothing.
 - A task id that is not a positive whole number is a validation error.
+- Priority and status values are matched exactly: "HIGH" or "Done" is a validation error. Only tags
+  are case-insensitive.
 - Filtering by more than one tag at once returns only tasks with all of the tags (FR-011).
 
 ## Requirements *(mandatory)*
