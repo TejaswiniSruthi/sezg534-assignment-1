@@ -174,6 +174,14 @@ def test_fr015_usage_errors_follow_the_validation_error_contract(file, arguments
     assert not file.exists()
 
 
+@pytest.mark.parametrize("value", ["²", "٣"])
+def test_fr015_non_ascii_digit_id_is_a_validation_error_not_a_crash(file, value):
+    assert_success(run_cli("add", "Buy milk", file=file))
+    before = snapshot(file)
+    assert_failure(run_cli("show", value, file=file), "validation", 2)
+    assert snapshot(file) == before
+
+
 def test_contract_data_file_from_environment_variable(tmp_path):
     target = tmp_path / "from-env.json"
     assert_success(run_cli("add", "Buy milk", cwd=tmp_path, extra_env={"TODO_FILE": str(target)}))

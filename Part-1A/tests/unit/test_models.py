@@ -161,6 +161,12 @@ def test_edge_id_must_be_a_positive_whole_number(value):
         validate_id(value)
 
 
+@pytest.mark.parametrize("value", ["²", "٣", "１", "1²"])
+def test_edge_id_must_use_the_digits_0_to_9(value):
+    with pytest.raises(ValidationError):
+        validate_id(value)
+
+
 # --- FR-017: task shape -------------------------------------------------------
 
 def test_fr017_task_to_dict_has_exactly_the_contract_fields():

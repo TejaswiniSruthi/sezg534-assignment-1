@@ -121,7 +121,9 @@ compare the returned ids with the exact expected sequence.
 - The data file does not exist yet: the store is treated as empty.
 - The data file exists but cannot be understood: a storage error, file untouched (FR-014).
 - Deleting or changing a task id that does not exist reports "not found" and changes nothing.
-- A task id that is not a positive whole number is a validation error.
+- A task id that is not a positive whole number written with the digits 0-9 is a validation
+  error. This includes other digit characters such as "²" or "٣" (added 2026-11-14 after review of
+  the first passing harness run found that "²" crashed the tool instead of reporting an error).
 - Priority and status values are matched exactly: "HIGH" or "Done" is a validation error. Only tags
   are case-insensitive.
 - Filtering by more than one tag at once returns only tasks with all of the tags (FR-011).
