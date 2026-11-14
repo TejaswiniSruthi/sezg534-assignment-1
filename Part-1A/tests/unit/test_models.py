@@ -1,7 +1,6 @@
 """Validation and domain rules (T005). Each test cites the requirement it checks."""
 
 import pytest
-
 from todo.errors import (
     InvalidTransitionError,
     NotFoundError,
@@ -18,7 +17,6 @@ from todo.models import (
     validate_status,
     validate_title,
 )
-
 
 # --- FR-015: error categories -------------------------------------------------
 

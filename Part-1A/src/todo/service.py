@@ -1,7 +1,7 @@
 """Task operations: create, read, update, move, delete, filter and sort."""
 
 from pathlib import Path
-from typing import Iterable
+from collections.abc import Iterable
 
 from todo.errors import NotFoundError, ValidationError
 from todo.models import (

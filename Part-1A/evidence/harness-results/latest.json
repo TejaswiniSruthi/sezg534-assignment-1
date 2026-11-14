@@ -1,6 +1,6 @@
 {
-  "run_id": "run-20261114T124615Z",
-  "started_utc": "2026-11-14T12:46:15+00:00",
+  "run_id": "run-20261114T124748Z",
+  "started_utc": "2026-11-14T12:47:48+00:00",
   "python": "3.10.12",
   "platform": "Linux",
   "tools": {
@@ -25,35 +25,17 @@
       "command": "-m ruff check src tests --config /sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/.harness/ruff.toml --output-format json --no-cache",
       "status": "FAIL",
       "exit_code": 1,
-      "summary": "5 violation(s)",
+      "summary": "2 violation(s)",
       "findings": [
         {
-          "rule": "UP035",
-          "location": "src/todo/models.py:5",
-          "expected": "no violation of the committed Ruff rule set",
-          "observed": "Import from `collections.abc` instead: `Iterable`"
-        },
-        {
-          "rule": "UP035",
-          "location": "src/todo/service.py:4",
-          "expected": "no violation of the committed Ruff rule set",
-          "observed": "Import from `collections.abc` instead: `Iterable`"
-        },
-        {
           "rule": "I001",
-          "location": "tests/unit/test_models.py:3",
+          "location": "src/todo/models.py:3",
           "expected": "no violation of the committed Ruff rule set",
           "observed": "Import block is un-sorted or un-formatted"
         },
         {
           "rule": "I001",
-          "location": "tests/unit/test_service.py:3",
-          "expected": "no violation of the committed Ruff rule set",
-          "observed": "Import block is un-sorted or un-formatted"
-        },
-        {
-          "rule": "I001",
-          "location": "tests/unit/test_storage.py:3",
+          "location": "src/todo/service.py:3",
           "expected": "no violation of the committed Ruff rule set",
           "observed": "Import block is un-sorted or un-formatted"
         }

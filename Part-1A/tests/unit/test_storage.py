@@ -3,7 +3,6 @@
 import json
 
 import pytest
-
 from todo.errors import StorageError
 from todo.models import Task
 from todo.storage import Store, load_store, save_store

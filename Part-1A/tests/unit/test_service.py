@@ -1,7 +1,6 @@
 """Task operations (T009, T014, T018). Each test cites its acceptance scenario."""
 
 import pytest
-
 from todo.errors import (
     InvalidTransitionError,
     NotFoundError,
