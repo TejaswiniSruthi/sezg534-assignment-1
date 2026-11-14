@@ -4,9 +4,18 @@
 
 **Created**: 2026-11-14
 
-**Status**: Draft
+**Status**: Clarified (awaiting human approval)
 
 **Input**: User description: "Build a Smart Todo & Task command-line tool for a single user. The user can create, view, update and delete tasks; give each task a priority and tags; filter tasks by tag; sort tasks by priority; and move a task through its statuses. Tasks are saved to a local file and are still there the next time the tool runs. Behaviour must be fully deterministic so that every acceptance criterion can be checked with an exact pass/fail test. Exclude due dates, reminders, multiple users, authentication and any network feature."
+
+## Clarifications
+
+### Session 2026-11-14
+
+- Q: Which status changes are allowed between todo, in_progress and done? → A: todo→in_progress, in_progress→done, and in_progress→todo (pause). "done" is final. todo→done is rejected.
+- Q: When several tags are given in a filter, must a task have all of them or any of them? → A: All of them (AND).
+- Q: What happens when the data file exists but cannot be understood? → A: Stop with a "storage" error and leave the file untouched.
+- Q: What is the default list order? → A: Creation order (ascending id). Priority order only when requested.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -37,6 +46,10 @@ with the exact field values that were entered.
 5. **AS-1.5** **Given** any store, **When** the user creates a task with an empty title, a title
    longer than 100 characters, a priority other than low/medium/high, or an invalid tag, **Then** a
    "validation" error is reported and the store is unchanged.
+6. **AS-1.6** **Given** the data file contains text that is not a valid task store, **When** the
+   user runs any operation, **Then** a "storage" error is reported and the file is unchanged.
+7. **AS-1.7** **Given** no data file exists, **When** the user lists tasks, **Then** an empty list
+   is returned and no error is reported.
 
 ---
 
@@ -55,9 +68,13 @@ move, edit its title, delete it, and confirm each outcome exactly.
 
 1. **AS-2.1** **Given** task 1 has status "todo", **When** the user starts it, **Then** its status
    is "in_progress"; **When** the user then completes it, **Then** its status is "done".
-2. **AS-2.2** **Given** a task in some status, **When** the user requests a status change that is
-   not allowed by FR-008, **Then** an "invalid transition" error is reported and the task is
-   unchanged.
+2. **AS-2.2** **Given** a task with status "todo", **When** the user requests "done", **Then** an
+   "invalid transition" error is reported and the task is unchanged. The same holds for every
+   change from "done" (to todo or in_progress) and for a change to the status the task already has.
+6. **AS-2.6** **Given** task 1 has status "in_progress", **When** the user moves it back to "todo",
+   **Then** its status is "todo".
+7. **AS-2.7** **Given** task 1 exists, **When** the user requests a status that is not todo,
+   in_progress or done, **Then** a "validation" error is reported and the task is unchanged.
 3. **AS-2.3** **Given** task 1 exists, **When** the user updates its title, priority or tags with
    valid values, **Then** only the supplied fields change and its id and status are unchanged.
 4. **AS-2.4** **Given** tasks 1 and 2 exist, **When** the user deletes task 1 and then creates a new
@@ -89,6 +106,10 @@ compare the returned ids with the exact expected sequence.
    **Then** exactly the tasks with status "done" are returned.
 5. **AS-3.5** **Given** any store, **When** a filter matches no task, **Then** an empty list is
    returned and no error is reported.
+6. **AS-3.6** **Given** tasks 1 (tags: home), 2 (tags: work) and 3 (tags: home, urgent), **When**
+   the user filters by tags "home" and "urgent" together, **Then** exactly task 3 is returned.
+7. **AS-3.7** **Given** tasks 1 (low) and 2 (high) and no sort request, **When** the user lists
+   tasks, **Then** the order of ids is exactly 1, 2.
 
 ---
 
@@ -98,10 +119,10 @@ compare the returned ids with the exact expected sequence.
 - Leading and trailing spaces in a title are removed before the length is checked and stored.
 - The same tag supplied twice, or in different letter case, is stored once.
 - The data file does not exist yet: the store is treated as empty.
-- The data file exists but cannot be understood: see FR-014.
+- The data file exists but cannot be understood: a storage error, file untouched (FR-014).
 - Deleting or changing a task id that does not exist reports "not found" and changes nothing.
 - A task id that is not a positive whole number is a validation error.
-- Filtering by more than one tag at once: see FR-011.
+- Filtering by more than one tag at once returns only tasks with all of the tags (FR-011).
 
 ## Requirements *(mandatory)*
 
@@ -117,21 +138,23 @@ compare the returned ids with the exact expected sequence.
   be reused, even after its task is deleted.
 - **FR-006**: Each new task MUST start with status "todo".
 - **FR-007**: The system MUST let the user view one task by id and list all tasks.
-- **FR-008**: The system MUST let the user change a task's status only along allowed transitions:
-  [NEEDS CLARIFICATION: which transitions between todo, in_progress and done are allowed, and can a
-  done task be reopened?]. Any other requested change MUST be rejected as an "invalid transition".
+- **FR-008**: The system MUST let the user change a task's status only along these transitions:
+  todo→in_progress, in_progress→done and in_progress→todo. Every other requested change, including
+  todo→done, any change from "done", and a change to the status the task already has, MUST be
+  rejected as an "invalid transition". A status value other than todo, in_progress or done MUST be
+  rejected as a "validation" error.
 - **FR-009**: The system MUST let the user update the title, priority and tags of a task under the
   same validation rules as creation; fields that are not supplied MUST stay unchanged.
 - **FR-010**: The system MUST let the user permanently delete a task by id.
 - **FR-011**: The system MUST let the user filter the list by tag (case-insensitive) and by status.
-  [NEEDS CLARIFICATION: when several tags are given, must a task have all of them or any of them?]
+  When several tags are given, only tasks that have all of them MUST be returned. When a tag filter
+  and a status filter are both given, a task MUST satisfy both.
 - **FR-012**: The list MUST be returned in ascending id order by default. When sorting by priority
   is requested, the order MUST be high, then medium, then low, with ties in ascending id order.
 - **FR-013**: Every successful create, update, status change and delete MUST be saved so that it is
   present the next time the tool runs. A missing data file MUST be treated as an empty store.
-- **FR-014**: When the data file exists but cannot be understood, the system MUST
-  [NEEDS CLARIFICATION: stop with a storage error and leave the file untouched, or set the file
-  aside and start with an empty store?].
+- **FR-014**: When the data file exists but cannot be understood, the system MUST report a
+  "storage" error for every operation and MUST leave the file byte-for-byte unchanged.
 - **FR-015**: Every failure MUST be reported as exactly one of four categories: "validation",
   "not found", "invalid transition" or "storage". Each category MUST be distinguishable by a program
   without reading the message text.
@@ -149,7 +172,7 @@ compare the returned ids with the exact expected sequence.
 
 ### Measurable Outcomes
 
-- **SC-001**: 100% of the acceptance scenarios AS-1.1 to AS-3.5 are verified by automated checks
+- **SC-001**: 100% of the acceptance scenarios AS-1.1 to AS-3.7 are verified by automated checks
   that give the same result on every run.
 - **SC-002**: Running the same sequence of commands twice from an empty store produces identical
   output both times.
