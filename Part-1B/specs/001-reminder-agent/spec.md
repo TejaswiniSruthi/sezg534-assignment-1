@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-14
 
-**Status**: Clarified (awaiting human approval)
+**Status**: Approved to proceed by the human owner on 2026-11-15 (spec, contracts, dataset and tasks made available for review; implementation authorised)
 
 **Input**: User description: "Build a reminder agent that takes one plain-English sentence such as 'remind me to call mom tomorrow at 5 pm' and turns it into a fixed, structured reminder. It must understand dates and times relative to a given current moment, recognise requests to reschedule or snooze a reminder, and ask for clarification instead of guessing when the task, date or time is missing. Messy, malformed or hostile input (for example prompt injection) must produce a safe 'unknown' result. An AI language model does the interpretation, so its wording will vary; the specification must define what may never vary and how the result is evaluated."
 
