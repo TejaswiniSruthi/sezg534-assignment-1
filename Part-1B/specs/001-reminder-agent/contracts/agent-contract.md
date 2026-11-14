@@ -25,11 +25,28 @@ Order of processing:
 
 - `parser.extract_json(text: str) -> dict` — raises `ValueError` unless the text is exactly one JSON
   object, optionally wrapped in a Markdown code fence.
-- `validator.find_violations(result: object, now: datetime) -> list[str]` — returns rule ids
-  (`INV-1` … `INV-9`); empty list means valid.
+- `validator.find_violations(result: object, now: datetime, marker: str) -> list[str]` — returns
+  rule ids (`INV-1` … `INV-9`); empty list means valid. A non-object is `["INV-1"]`.
 - `prompt.build_system_prompt(now: datetime) -> str` — contains the instructions, the leak marker,
-  the reference moment and a 15-day calendar.
+  the reference moment with its weekday, and a 15-day calendar (the reference date and the next 14
+  days, each as `YYYY-MM-DD Weekday`).
+- `prompt.leak_marker() -> str` — the marker found in `prompts/system_prompt.md`, shaped
+  `RA-MARKER-` followed by 8 upper-case hexadecimal characters.
 - `schema.unknown_result() -> dict` — a fresh copy of the unknown result.
+- `config.read_env_file(path: Path) -> dict[str, str]` — `KEY=value` lines; blank lines and `#`
+  comments ignored; surrounding quotes removed.
+- `config.load_settings(environ: Mapping[str, str], start: Path) -> Settings` — values from
+  `environ` win over a `.env` file found in `start` or any parent folder. `Settings` has `api_key`,
+  `model` (`None` when unset) and `temperature` (default `0.0`); its `repr` never shows the key.
+  A missing key or a non-numeric temperature raises `ServiceError`.
+- `llm.choose_model(names: list[str]) -> str` — from names such as `models/gemini-3.8-flash`, picks
+  the highest-versioned plain `gemini-<version>-flash`; raises `ServiceError` when there is none.
+- `llm.GeminiClient(settings, transport=None)` — `transport(method, path, headers, body) -> dict`
+  performs one HTTPS call and returns the decoded JSON, or raises `ServiceError`. `generate`
+  returns the reply text; a reply with no candidate text (for example a safety block) returns `""`,
+  which the agent turns into the unknown result. `GeminiClient.from_config()` builds a client from
+  the process environment. Attributes `model` and `temperature` report what was used.
+- Fallback violation ids for an unusable reply: `"not-json"`.
 
 ## CLI
 

@@ -1,0 +1,4 @@
+# Development and harness tools only. The application itself has no third-party dependency.
+ruff==0.17.5
+bandit==1.9.4
+pytest==9.2.0
