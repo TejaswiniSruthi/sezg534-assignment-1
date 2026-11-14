@@ -1,0 +1,274 @@
+==============================================================================
+G1 Syntax & Lint Guard (ruff)  ->  PASS
+command: python -m ruff check src tests --config /sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/.harness/ruff.toml --output-format json --no-cache
+exit code: 0
+--- stdout ---
+[]
+--- stderr ---
+
+
+==============================================================================
+G2 Security / SAST Guard (bandit)  ->  PASS
+command: python -m bandit -r src -c /sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/.harness/bandit.yaml -f json -q
+exit code: 0
+--- stdout ---
+{
+  "errors": [],
+  "generated_at": "2026-11-14T12:50:26Z",
+  "metrics": {
+    "_totals": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 348,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/todo/__init__.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 1,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/todo/__main__.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 4,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/todo/cli.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 74,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/todo/errors.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 21,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/todo/models.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 77,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/todo/service.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 101,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/todo/storage.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 70,
+      "nosec": 0,
+      "skipped_tests": 0
+    }
+  },
+  "results": []
+}
+--- stderr ---
+
+
+==============================================================================
+G3 Unit & Contract Tests (pytest)  ->  FAIL
+command: python -m pytest tests -q --junitxml=<temp>
+exit code: 1
+--- stdout ---
+.............................FF......................................... [ 36%]
+...............................................FFFF..................... [ 73%]
+.....................................................                    [100%]
+=================================== FAILURES ===================================
+____ test_fr015_non_ascii_digit_id_is_a_validation_error_not_a_crash[\xb2] _____
+
+file = PosixPath('/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/tmp/pytest-of-rcw-017hqbtup6ms4t5ugzxcmf2r/pytest-3/test_fr015_non_ascii_digit_id_0/tasks.json')
+value = '²'
+
+    @pytest.mark.parametrize("value", ["²", "٣"])
+    def test_fr015_non_ascii_digit_id_is_a_validation_error_not_a_crash(file, value):
+        assert_success(run_cli("add", "Buy milk", file=file))
+        before = snapshot(file)
+>       assert_failure(run_cli("show", value, file=file), "validation", 2)
+
+tests/contract/test_cli_contract.py:181: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = CompletedProcess(args=['/usr/bin/python3', '-m', 'todo', '--file', '/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/tmp/pytest-...validate_id\n    if not text.isdigit() or int(text) < 1:\nValueError: invalid literal for int() with base 10: \'²\'\n')
+category = 'validation', exit_code = 2
+
+    def assert_failure(result, category, exit_code):
+        """Contract: exit code, empty stdout, one line of error JSON on stderr."""
+>       assert result.returncode == exit_code, result.stderr
+E       AssertionError: Traceback (most recent call last):
+E           File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+E             return _run_code(code, main_globals, None,
+E           File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+E             exec(code, run_globals)
+E           File "/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/src/todo/__main__.py", line 7, in <module>
+E             sys.exit(main())
+E           File "/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/src/todo/cli.py", line 88, in main
+E             result = _dispatch(TaskService(path), args)
+E           File "/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/src/todo/cli.py", line 72, in _dispatch
+E             return service.get_task(validate_id(args.id)).to_dict()
+E           File "/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/src/todo/models.py", line 88, in validate_id
+E             if not text.isdigit() or int(text) < 1:
+E         ValueError: invalid literal for int() with base 10: '²'
+E         
+E       assert 1 == 2
+E        +  where 1 = CompletedProcess(args=['/usr/bin/python3', '-m', 'todo', '--file', '/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/tmp/pytest-...validate_id\n    if not text.isdigit() or int(text) < 1:\nValueError: invalid literal for int() with base 10: \'²\'\n').returncode
+
+tests/contract/test_cli_contract.py:43: AssertionError
+___ test_fr015_non_ascii_digit_id_is_a_validation_error_not_a_crash[\u0663] ____
+
+file = PosixPath('/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/tmp/pytest-of-rcw-017hqbtup6ms4t5ugzxcmf2r/pytest-3/test_fr015_non_ascii_digit_id_1/tasks.json')
+value = '٣'
+
+    @pytest.mark.parametrize("value", ["²", "٣"])
+    def test_fr015_non_ascii_digit_id_is_a_validation_error_not_a_crash(file, value):
+        assert_success(run_cli("add", "Buy milk", file=file))
+        before = snapshot(file)
+>       assert_failure(run_cli("show", value, file=file), "validation", 2)
+
+tests/contract/test_cli_contract.py:181: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = CompletedProcess(args=['/usr/bin/python3', '-m', 'todo', '--file', '/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/tmp/pytest-...'show', '٣'], returncode=3, stdout='', stderr='{"error": {"category": "not_found", "message": "no task with id 3"}}\n')
+category = 'validation', exit_code = 2
+
+    def assert_failure(result, category, exit_code):
+        """Contract: exit code, empty stdout, one line of error JSON on stderr."""
+>       assert result.returncode == exit_code, result.stderr
+E       AssertionError: {"error": {"category": "not_found", "message": "no task with id 3"}}
+E         
+E       assert 3 == 2
+E        +  where 3 = CompletedProcess(args=['/usr/bin/python3', '-m', 'todo', '--file', '/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/tmp/pytest-...'show', '٣'], returncode=3, stdout='', stderr='{"error": {"category": "not_found", "message": "no task with id 3"}}\n').returncode
+
+tests/contract/test_cli_contract.py:43: AssertionError
+________________ test_edge_id_must_use_the_digits_0_to_9[\xb2] _________________
+
+value = '²'
+
+    @pytest.mark.parametrize("value", ["²", "٣", "１", "1²"])
+    def test_edge_id_must_use_the_digits_0_to_9(value):
+        with pytest.raises(ValidationError):
+>           validate_id(value)
+
+tests/unit/test_models.py:167: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = '²'
+
+    def validate_id(value: str | int) -> int:
+        """Return the task id as a positive whole number."""
+        text = str(value)
+>       if not text.isdigit() or int(text) < 1:
+E       ValueError: invalid literal for int() with base 10: '²'
+
+src/todo/models.py:88: ValueError
+_______________ test_edge_id_must_use_the_digits_0_to_9[\u0663] ________________
+
+value = '٣'
+
+    @pytest.mark.parametrize("value", ["²", "٣", "１", "1²"])
+    def test_edge_id_must_use_the_digits_0_to_9(value):
+>       with pytest.raises(ValidationError):
+E       Failed: DID NOT RAISE ValidationError
+
+tests/unit/test_models.py:166: Failed
+_______________ test_edge_id_must_use_the_digits_0_to_9[\uff11] ________________
+
+value = '１'
+
+    @pytest.mark.parametrize("value", ["²", "٣", "１", "1²"])
+    def test_edge_id_must_use_the_digits_0_to_9(value):
+>       with pytest.raises(ValidationError):
+E       Failed: DID NOT RAISE ValidationError
+
+tests/unit/test_models.py:166: Failed
+________________ test_edge_id_must_use_the_digits_0_to_9[1\xb2] ________________
+
+value = '1²'
+
+    @pytest.mark.parametrize("value", ["²", "٣", "１", "1²"])
+    def test_edge_id_must_use_the_digits_0_to_9(value):
+        with pytest.raises(ValidationError):
+>           validate_id(value)
+
+tests/unit/test_models.py:167: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = '1²'
+
+    def validate_id(value: str | int) -> int:
+        """Return the task id as a positive whole number."""
+        text = str(value)
+>       if not text.isdigit() or int(text) < 1:
+E       ValueError: invalid literal for int() with base 10: '1²'
+
+src/todo/models.py:88: ValueError
+=========================== short test summary info ============================
+FAILED tests/contract/test_cli_contract.py::test_fr015_non_ascii_digit_id_is_a_validation_error_not_a_crash[\xb2]
+FAILED tests/contract/test_cli_contract.py::test_fr015_non_ascii_digit_id_is_a_validation_error_not_a_crash[\u0663]
+FAILED tests/unit/test_models.py::test_edge_id_must_use_the_digits_0_to_9[\xb2]
+FAILED tests/unit/test_models.py::test_edge_id_must_use_the_digits_0_to_9[\u0663]
+FAILED tests/unit/test_models.py::test_edge_id_must_use_the_digits_0_to_9[\uff11]
+FAILED tests/unit/test_models.py::test_edge_id_must_use_the_digits_0_to_9[1\xb2]
+6 failed, 191 passed in 65.97s (0:01:05)
+--- stderr ---
+
