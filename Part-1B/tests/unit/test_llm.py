@@ -1,7 +1,6 @@
 """Gemini client (FR-016) with a fake transport; no network is used."""
 
 import pytest
-
 from reminder_agent.config import Settings
 from reminder_agent.llm import GeminiClient, ServiceError, choose_model
 

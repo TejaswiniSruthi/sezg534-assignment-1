@@ -6,7 +6,6 @@ from datetime import datetime
 import layer1_schema
 import layer2_properties
 import pytest
-
 from reminder_agent.agent import ReminderAgent
 from reminder_agent.llm import ServiceError
 from reminder_agent.prompt import leak_marker

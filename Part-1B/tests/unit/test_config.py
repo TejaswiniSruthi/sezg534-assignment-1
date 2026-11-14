@@ -1,7 +1,6 @@
 """Configuration and secrets (Constitution VI)."""
 
 import pytest
-
 from reminder_agent.config import load_settings, read_env_file
 from reminder_agent.llm import ServiceError
 

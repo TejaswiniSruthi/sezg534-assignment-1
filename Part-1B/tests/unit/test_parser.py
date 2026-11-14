@@ -1,7 +1,6 @@
 """Reply parsing (FR-014): exactly one JSON object, optionally in a code fence."""
 
 import pytest
-
 from reminder_agent.parser import extract_json
 
 OBJECT = '{"intent": "unknown", "task": null}'

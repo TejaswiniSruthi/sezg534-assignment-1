@@ -3,7 +3,6 @@
 from datetime import datetime
 
 import pytest
-
 from reminder_agent.schema import unknown_result
 from reminder_agent.validator import find_violations
 
