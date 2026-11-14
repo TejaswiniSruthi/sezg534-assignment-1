@@ -1,8 +1,8 @@
 """Task model, validation rules and status transitions (FR-002 to FR-008)."""
 
 import re
-from dataclasses import dataclass
 from collections.abc import Iterable
+from dataclasses import dataclass
 
 from todo.errors import InvalidTransitionError, ValidationError
 
