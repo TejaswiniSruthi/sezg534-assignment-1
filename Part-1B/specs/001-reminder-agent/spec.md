@@ -4,9 +4,18 @@
 
 **Created**: 2026-11-14
 
-**Status**: Draft
+**Status**: Clarified (awaiting human approval)
 
 **Input**: User description: "Build a reminder agent that takes one plain-English sentence such as 'remind me to call mom tomorrow at 5 pm' and turns it into a fixed, structured reminder. It must understand dates and times relative to a given current moment, recognise requests to reschedule or snooze a reminder, and ask for clarification instead of guessing when the task, date or time is missing. Messy, malformed or hostile input (for example prompt injection) must produce a safe 'unknown' result. An AI language model does the interpretation, so its wording will vary; the specification must define what may never vary and how the result is evaluated."
+
+## Clarifications
+
+### Session 2026-11-14
+
+- Q: An hour is given without am/pm ("at 5"). Ask or assume? → A: Ask. Request clarification with "time" missing; never guess.
+- Q: A date is given without a time ("tomorrow"). Ask or default? → A: Ask for the time; request clarification with "time" missing.
+- Q: What is the overall acceptance threshold? → A: At least 90% of cases pass, every guardrail (adversarial) case passes, and there are no structural (L1) failures.
+- Q: The requested date-time is already past. Ask for a new date or return unknown? → A: Ask for a new date; request clarification with "date" missing.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -54,11 +63,12 @@ requests clarification, names the missing item and contains no date-time.
    a clarification question is present.
 2. **AS-2.2** **Given** "remind me tomorrow at 6 pm" (no task), **Then** requires_clarification is
    true, missing_fields is exactly ["task"] and task is null.
-3. **AS-2.3** **Given** a message with a date but no time, **Then** the behaviour in FR-007 applies.
-4. **AS-2.4** **Given** a message with an hour but no am/pm, **Then** the behaviour in FR-006
-   applies.
-5. **AS-2.5** **Given** a message whose date-time is already past, **Then** the behaviour in FR-011
-   applies and nothing is scheduled in the past.
+3. **AS-2.3** **Given** "remind me to pay bills tomorrow" (a date but no time), **Then**
+   requires_clarification is true and missing_fields is exactly ["time"].
+4. **AS-2.4** **Given** "remind me to call mom tomorrow at 5" (an hour but no am/pm), **Then**
+   requires_clarification is true and missing_fields is exactly ["time"].
+5. **AS-2.5** **Given** "remind me yesterday at 5 pm to call the bank" (already past), **Then**
+   requires_clarification is true, missing_fields is exactly ["date"] and datetime is null.
 
 ---
 
@@ -133,10 +143,11 @@ every result is exactly the "unknown" result and reveals nothing about the agent
   and "midnight".
 - **FR-005**: A time without a date MUST mean the next occurrence of that time after the reference
   moment.
-- **FR-006**: An hour given without am/pm and not in 24-hour form ("at 5")
-  [NEEDS CLARIFICATION: ask the user which is meant, or assume a value?]
-- **FR-007**: A date given without a time ("tomorrow")
-  [NEEDS CLARIFICATION: ask the user for the time, or use a default time?]
+- **FR-006**: An hour given without am/pm and not in 24-hour form ("at 5") is ambiguous: the agent
+  MUST request clarification with "time" in missing_fields and MUST NOT choose am or pm.
+- **FR-007**: A date given without a time ("tomorrow"), or with only a vague part of the day
+  ("tomorrow morning"), MUST request clarification with "time" in missing_fields; no default time
+  is applied.
 - **FR-008**: A request to move an existing reminder to a new date or time MUST produce intent
   "reschedule" with the reminder's subject as the task and the new date-time.
 - **FR-009**: A request to snooze MUST produce intent "snooze" with the duration in whole minutes
@@ -197,8 +208,8 @@ Every result is one object with exactly these seven fields:
 
 - **BP-1**: Intent equals the expected intent.
 - **BP-2**: The date-time (or snooze duration, or set of missing fields) equals the expected value.
-- **BP-3**: The task contains every expected key word, ignoring letter case, and contains none of
-  the date/time words given in the case (FR-015).
+- **BP-3**: The task contains the expected key words, ignoring letter case, and contains none of
+  the date/time words listed in the case (FR-015). Scored as a fraction (see EV-2).
 - **BP-4**: A clarification question, when present, ends with a question mark.
 
 ### Evaluation Method and Threshold
@@ -207,10 +218,16 @@ Every result is one object with exactly these seven fields:
   underspecified, missing mandatory information, malformed, and adversarial/guardrail input. Every
   case cites the requirement, invariant or scenario it exercises and carries its ground truth.
 - **EV-2**: Each case is evaluated in three layers. L1 structural: INV-1. L2 property: INV-2 to
-  INV-9 and BP-4. L3 semantic: score = 0.3 × BP-1 + 0.4 × BP-2 + 0.3 × BP-3, each 0 or 1.
-- **EV-3**: A case passes when L1 passes, L2 passes and the L3 score is at least 0.8 (which requires
-  intent and the date-time/slot value to be right).
-- **EV-4**: [NEEDS CLARIFICATION: overall acceptance threshold]
+  INV-9 and BP-4. L3 semantic: score = 0.3 × BP-1 + 0.4 × BP-2 + 0.3 × BP-3, where BP-1 and BP-2
+  are 0 or 1 and BP-3 is the fraction of expected key words found in the task (0 when a forbidden
+  date/time word is present or the task is missing; 1 when the case expects no task and none is
+  given).
+- **EV-3**: A case passes when L1 passes, L2 passes and the L3 score is at least 0.8. This requires
+  the intent and the date-time/slot value to be right and at least one third of the task key words
+  to be present; exact wording of the task is not required.
+- **EV-4**: The run is a PASS when all three hold: (a) at least 90% of the cases pass; (b) every
+  case in the adversarial/guardrail category passes; (c) no case fails L1. Otherwise the run is a
+  FAIL. This threshold was fixed on 2026-11-14, before any evaluation run.
 - **EV-5**: A case whose model call fails after the allowed retries is recorded as a service error,
   is not scored, and makes the run INCOMPLETE; an INCOMPLETE run is never a PASS.
 - **EV-6**: Every evaluation run records the model name, temperature, reference moment, and a
