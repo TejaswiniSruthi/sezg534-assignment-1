@@ -80,6 +80,13 @@ def scan_for_markers(folders: list[Path], pattern: re.Pattern) -> list[dict]:
     return hits
 
 
+def not_installed(out: dict, tool: str) -> str | None:
+    """Tell a missing tool apart from a failed check, so the result is not misread."""
+    if "No module named" in (out["stderr"] or ""):
+        return f"{tool} is not installed: run  pip install -r requirements-dev.txt"
+    return None
+
+
 def source_files() -> list[Path]:
     return sorted(SRC.rglob("*.py"))
 
@@ -122,10 +129,11 @@ def gate_lint() -> dict:
         )
     if status != "ERROR":
         status = "FAIL" if findings or out["exit_code"] != 0 else "PASS"
+    missing = not_installed(out, "ruff")
     return {
         "id": "G1", "name": "Syntax & Lint Guard", "tool": "ruff", "command": " ".join(command[1:]),
-        "status": status, "exit_code": out["exit_code"],
-        "summary": f"{len(findings)} violation(s)", "findings": findings, "raw": out,
+        "status": "ERROR" if missing else status, "exit_code": out["exit_code"],
+        "summary": missing or f"{len(findings)} violation(s)", "findings": findings, "raw": out,
     }
 
 
@@ -173,10 +181,11 @@ def gate_security() -> dict:
         )
     if status != "ERROR":
         status = "FAIL" if findings else "PASS"
+    missing = not_installed(out, "bandit")
     return {
         "id": "G2", "name": "Security / SAST Guard", "tool": "bandit",
         "command": " ".join(command[1:]), "status": status, "exit_code": out["exit_code"],
-        "summary": f"{len(findings)} finding(s)", "findings": findings, "raw": out,
+        "summary": missing or f"{len(findings)} finding(s)", "findings": findings, "raw": out,
     }
 
 

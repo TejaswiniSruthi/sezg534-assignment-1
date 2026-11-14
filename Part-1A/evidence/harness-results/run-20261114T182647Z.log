@@ -1,0 +1,29 @@
+==============================================================================
+G1 Syntax & Lint Guard (ruff)  ->  FAIL
+command: python -m ruff check src tests --config C:\Users\TEJASWINI\OneDrive\Desktop\TJ's\MTech_Study Folder\AI - SDLC Assignment - 1\Part-1A\.harness\ruff.toml --output-format json --no-cache
+exit code: 1
+--- stdout ---
+
+--- stderr ---
+C:\Users\TEJASWINI\scoop\apps\python\current\python.exe: No module named ruff
+
+==============================================================================
+G2 Security / SAST Guard (bandit)  ->  ERROR
+command: python -m bandit -r src -c C:\Users\TEJASWINI\OneDrive\Desktop\TJ's\MTech_Study Folder\AI - SDLC Assignment - 1\Part-1A\.harness\bandit.yaml -f json -q
+exit code: 1
+--- stdout ---
+
+--- stderr ---
+C:\Users\TEJASWINI\scoop\apps\python\current\python.exe: No module named bandit
+
+==============================================================================
+G3 Unit & Contract Tests (pytest)  ->  PASS
+command: python -m pytest tests -q --junitxml=<temp>
+exit code: 0
+--- stdout ---
+........................................................................ [ 36%]
+........................................................................ [ 73%]
+.....................................................                    [100%]
+197 passed in 29.90s
+--- stderr ---
+
