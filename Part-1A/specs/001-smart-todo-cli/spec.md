@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-14
 
-**Status**: Clarified (awaiting human approval)
+**Status**: Approved by the human owner on 2026-11-14 (spec, plan, contracts and tasks reviewed)
 
 **Input**: User description: "Build a Smart Todo & Task command-line tool for a single user. The user can create, view, update and delete tasks; give each task a priority and tags; filter tasks by tag; sort tasks by priority; and move a task through its statuses. Tasks are saved to a local file and are still there the next time the tool runs. Behaviour must be fully deterministic so that every acceptance criterion can be checked with an exact pass/fail test. Exclude due dates, reminders, multiple users, authentication and any network feature."
 
