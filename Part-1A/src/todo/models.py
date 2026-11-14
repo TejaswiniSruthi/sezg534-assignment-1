@@ -83,9 +83,9 @@ def validate_status(status: str) -> str:
 
 
 def validate_id(value: str | int) -> int:
-    """Return the task id as a positive whole number."""
+    """Return the task id as a positive whole number written with the digits 0-9."""
     text = str(value)
-    if not text.isdigit() or int(text) < 1:
+    if not (text.isascii() and text.isdigit()) or int(text) < 1:
         raise ValidationError("task id must be a positive whole number")
     return int(text)
 

@@ -1,0 +1,59 @@
+{
+  "run_id": "run-20261114T125158Z",
+  "started_utc": "2026-11-14T12:51:58+00:00",
+  "python": "3.10.12",
+  "platform": "Linux",
+  "tools": {
+    "ruff": "ruff 0.17.5",
+    "bandit": "__main__.py 1.9.4",
+    "pytest": "pytest 9.2.0"
+  },
+  "source_files": [
+    "src/todo/__init__.py",
+    "src/todo/__main__.py",
+    "src/todo/cli.py",
+    "src/todo/errors.py",
+    "src/todo/models.py",
+    "src/todo/service.py",
+    "src/todo/storage.py"
+  ],
+  "gates": [
+    {
+      "id": "G1",
+      "name": "Syntax & Lint Guard",
+      "tool": "ruff",
+      "command": "-m ruff check src tests --config /sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/.harness/ruff.toml --output-format json --no-cache",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "0 violation(s)",
+      "findings": []
+    },
+    {
+      "id": "G2",
+      "name": "Security / SAST Guard",
+      "tool": "bandit",
+      "command": "-m bandit -r src -c /sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/.harness/bandit.yaml -f json -q",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "0 finding(s)",
+      "findings": []
+    },
+    {
+      "id": "G3",
+      "name": "Unit & Contract Tests",
+      "tool": "pytest",
+      "command": "-m pytest tests -q --junitxml=<temp>",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "197 passed, 0 failed, 0 errors, 0 skipped of 197",
+      "counts": {
+        "tests": 197,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "findings": []
+    }
+  ],
+  "overall": "PASS"
+}

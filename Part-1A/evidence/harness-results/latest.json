@@ -1,6 +1,6 @@
 {
-  "run_id": "run-20261114T125024Z",
-  "started_utc": "2026-11-14T12:50:24+00:00",
+  "run_id": "run-20261114T125158Z",
+  "started_utc": "2026-11-14T12:51:58+00:00",
   "python": "3.10.12",
   "platform": "Linux",
   "tools": {
@@ -43,60 +43,17 @@
       "name": "Unit & Contract Tests",
       "tool": "pytest",
       "command": "-m pytest tests -q --junitxml=<temp>",
-      "status": "FAIL",
-      "exit_code": 1,
-      "summary": "191 passed, 6 failed, 0 errors, 0 skipped of 197",
+      "status": "PASS",
+      "exit_code": 0,
+      "summary": "197 passed, 0 failed, 0 errors, 0 skipped of 197",
       "counts": {
         "tests": 197,
-        "failures": 6,
+        "failures": 0,
         "errors": 0,
         "skipped": 0
       },
-      "findings": [
-        {
-          "rule": "test-failure",
-          "location": "tests.contract.test_cli_contract::test_fr015_non_ascii_digit_id_is_a_validation_error_not_a_crash[\\xb2]",
-          "expected": "test passes (assertion derived from the specification)",
-          "observed": "AssertionError: Traceback (most recent call last):\n    File \"/usr/lib/python3.10/runpy.py\", line 196, in _run_module_as_main\n      return _run_code(code, main_globals, None,\n    File \"/usr/lib/python3.10/runpy.py\", line 86, in _run_code\n      exec(code, run_globals)\n    File \"/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/src/todo/__main__.py\", line 7, in <module>\n    ",
-          "detail": "E           File \"/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/src/todo/cli.py\", line 88, in main\nE             result = _dispatch(TaskService(path), args)\nE           File \"/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/src/todo/cli.py\", line 72, in _dispatch\nE             return service.get_task(validate_id(args.id)).to_dict()\nE           File \"/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/mnt/AI - SDLC Assignment - 1/Part-1A/src/todo/models.py\", line 88, in validate_id\nE             if not text.isdigit() or int(text) < 1:\nE         ValueError: invalid literal for int() with base 10: '\u00b2'\nE         \nE       assert 1 == 2\nE        +  where 1 = CompletedProcess(args=['/usr/bin/python3', '-m', 'todo', '--file', '/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/tmp/pytest-...validate_id\\n    if not text.isdigit() or int(text) < 1:\\nValueError: invalid literal for int() with base 10: \\'\u00b2\\'\\n').returncode\n\ntests/contract/test_cli_contract.py:43: AssertionError"
-        },
-        {
-          "rule": "test-failure",
-          "location": "tests.contract.test_cli_contract::test_fr015_non_ascii_digit_id_is_a_validation_error_not_a_crash[\\u0663]",
-          "expected": "test passes (assertion derived from the specification)",
-          "observed": "AssertionError: {\"error\": {\"category\": \"not_found\", \"message\": \"no task with id 3\"}}\n  \nassert 3 == 2\n +  where 3 = CompletedProcess(args=['/usr/bin/python3', '-m', 'todo', '--file', '/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/tmp/pytest-...'show', '\u0663'], returncode=3, stdout='', stderr='{\"error\": {\"category\": \"not_found\", \"message\": \"no task with id 3\"}}\\n').returncode",
-          "detail": "result = CompletedProcess(args=['/usr/bin/python3', '-m', 'todo', '--file', '/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/tmp/pytest-...'show', '\u0663'], returncode=3, stdout='', stderr='{\"error\": {\"category\": \"not_found\", \"message\": \"no task with id 3\"}}\\n')\ncategory = 'validation', exit_code = 2\n\n    def assert_failure(result, category, exit_code):\n        \"\"\"Contract: exit code, empty stdout, one line of error JSON on stderr.\"\"\"\n>       assert result.returncode == exit_code, result.stderr\nE       AssertionError: {\"error\": {\"category\": \"not_found\", \"message\": \"no task with id 3\"}}\nE         \nE       assert 3 == 2\nE        +  where 3 = CompletedProcess(args=['/usr/bin/python3', '-m', 'todo', '--file', '/sessions/rcw-017hqbtup6ms4t5ugzxcmf2r/tmp/pytest-...'show', '\u0663'], returncode=3, stdout='', stderr='{\"error\": {\"category\": \"not_found\", \"message\": \"no task with id 3\"}}\\n').returncode\n\ntests/contract/test_cli_contract.py:43: AssertionError"
-        },
-        {
-          "rule": "test-failure",
-          "location": "tests.unit.test_models::test_edge_id_must_use_the_digits_0_to_9[\\xb2]",
-          "expected": "test passes (assertion derived from the specification)",
-          "observed": "ValueError: invalid literal for int() with base 10: '\u00b2'",
-          "detail": "tests/unit/test_models.py:167: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nvalue = '\u00b2'\n\n    def validate_id(value: str | int) -> int:\n        \"\"\"Return the task id as a positive whole number.\"\"\"\n        text = str(value)\n>       if not text.isdigit() or int(text) < 1:\nE       ValueError: invalid literal for int() with base 10: '\u00b2'\n\nsrc/todo/models.py:88: ValueError"
-        },
-        {
-          "rule": "test-failure",
-          "location": "tests.unit.test_models::test_edge_id_must_use_the_digits_0_to_9[\\u0663]",
-          "expected": "test passes (assertion derived from the specification)",
-          "observed": "Failed: DID NOT RAISE ValidationError",
-          "detail": "value = '\u0663'\n\n    @pytest.mark.parametrize(\"value\", [\"\u00b2\", \"\u0663\", \"\uff11\", \"1\u00b2\"])\n    def test_edge_id_must_use_the_digits_0_to_9(value):\n>       with pytest.raises(ValidationError):\nE       Failed: DID NOT RAISE ValidationError\n\ntests/unit/test_models.py:166: Failed"
-        },
-        {
-          "rule": "test-failure",
-          "location": "tests.unit.test_models::test_edge_id_must_use_the_digits_0_to_9[\\uff11]",
-          "expected": "test passes (assertion derived from the specification)",
-          "observed": "Failed: DID NOT RAISE ValidationError",
-          "detail": "value = '\uff11'\n\n    @pytest.mark.parametrize(\"value\", [\"\u00b2\", \"\u0663\", \"\uff11\", \"1\u00b2\"])\n    def test_edge_id_must_use_the_digits_0_to_9(value):\n>       with pytest.raises(ValidationError):\nE       Failed: DID NOT RAISE ValidationError\n\ntests/unit/test_models.py:166: Failed"
-        },
-        {
-          "rule": "test-failure",
-          "location": "tests.unit.test_models::test_edge_id_must_use_the_digits_0_to_9[1\\xb2]",
-          "expected": "test passes (assertion derived from the specification)",
-          "observed": "ValueError: invalid literal for int() with base 10: '1\u00b2'",
-          "detail": "tests/unit/test_models.py:167: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nvalue = '1\u00b2'\n\n    def validate_id(value: str | int) -> int:\n        \"\"\"Return the task id as a positive whole number.\"\"\"\n        text = str(value)\n>       if not text.isdigit() or int(text) < 1:\nE       ValueError: invalid literal for int() with base 10: '1\u00b2'\n\nsrc/todo/models.py:88: ValueError"
-        }
-      ]
+      "findings": []
     }
   ],
-  "overall": "FAIL"
+  "overall": "PASS"
 }

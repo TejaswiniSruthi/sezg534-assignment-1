@@ -1,0 +1,37 @@
+diff -ru evidence/initial-generation/src/todo/models.py evidence/final-generation/src/todo/models.py
+--- evidence/initial-generation/src/todo/models.py	2026-11-14 12:46:02.613267500 +0000
++++ evidence/final-generation/src/todo/models.py	2026-11-14 12:53:01.819828300 +0000
+@@ -1,8 +1,8 @@
+ """Task model, validation rules and status transitions (FR-002 to FR-008)."""
+ 
+ import re
++from collections.abc import Iterable
+ from dataclasses import dataclass
+-from typing import Iterable
+ 
+ from todo.errors import InvalidTransitionError, ValidationError
+ 
+@@ -83,9 +83,9 @@
+ 
+ 
+ def validate_id(value: str | int) -> int:
+-    """Return the task id as a positive whole number."""
++    """Return the task id as a positive whole number written with the digits 0-9."""
+     text = str(value)
+-    if not text.isdigit() or int(text) < 1:
++    if not (text.isascii() and text.isdigit()) or int(text) < 1:
+         raise ValidationError("task id must be a positive whole number")
+     return int(text)
+ 
+diff -ru evidence/initial-generation/src/todo/service.py evidence/final-generation/src/todo/service.py
+--- evidence/initial-generation/src/todo/service.py	2026-11-14 12:46:02.446674900 +0000
++++ evidence/final-generation/src/todo/service.py	2026-11-14 12:53:01.962423800 +0000
+@@ -1,7 +1,7 @@
+ """Task operations: create, read, update, move, delete, filter and sort."""
+ 
++from collections.abc import Iterable
+ from pathlib import Path
+-from typing import Iterable
+ 
+ from todo.errors import NotFoundError, ValidationError
+ from todo.models import (
