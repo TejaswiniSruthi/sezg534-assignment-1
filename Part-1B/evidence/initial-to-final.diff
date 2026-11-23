@@ -1,0 +1,142 @@
+diff -ru evidence/initial-generation/src/reminder_agent/__main__.py evidence/final-generation/src/reminder_agent/__main__.py
+--- evidence/initial-generation/src/reminder_agent/__main__.py	2026-11-14 18:50:46.887829100 +0000
++++ evidence/final-generation/src/reminder_agent/__main__.py	2026-11-23 04:38:04.620835800 +0000
+@@ -15,12 +15,27 @@
+     return code
+ 
+ 
++def _list_models() -> int:
++    try:
++        names = GeminiClient.from_config().list_models()
++    except ServiceError as error:
++        return _fail("service", str(error), 3)
++    for name in sorted(names):
++        print(name.removeprefix("models/"))
++    return 0
++
++
+ def main(argv: list[str] | None = None) -> int:
+     """Run the agent on one message and print the result as one line of JSON."""
+     parser = argparse.ArgumentParser(prog="reminder_agent")
+-    parser.add_argument("message")
++    parser.add_argument("message", nargs="?")
++    parser.add_argument("--list-models", action="store_true", help="show usable model names")
+     parser.add_argument("--now", help="reference moment, YYYY-MM-DDTHH:MM (default: now)")
+     args = parser.parse_args(argv)
++    if args.list_models:
++        return _list_models()
++    if args.message is None:
++        return _fail("usage", "a message is required", 2)
+     try:
+         now = (
+             datetime.strptime(args.now, schema.DATETIME_FORMAT)
+diff -ru evidence/initial-generation/src/reminder_agent/errors.py evidence/final-generation/src/reminder_agent/errors.py
+--- evidence/initial-generation/src/reminder_agent/errors.py	2026-11-14 18:50:46.705428700 +0000
++++ evidence/final-generation/src/reminder_agent/errors.py	2026-11-23 04:38:04.189575500 +0000
+@@ -3,3 +3,16 @@
+ 
+ class ServiceError(Exception):
+     """The model service or its configuration failed; no result was produced (FR-016)."""
++
++    def __init__(
++        self, message: str, retry_after: float | None = None, quota_id: str | None = None
++    ) -> None:
++        """Keep the message plus any retry hint and quota name the service gave."""
++        super().__init__(message)
++        self.retry_after = retry_after
++        self.quota_id = quota_id
++
++    @property
++    def daily_quota(self) -> bool:
++        """True when a per-day quota is used up, so retrying today cannot succeed."""
++        return bool(self.quota_id) and "PerDay" in self.quota_id
+diff -ru evidence/initial-generation/src/reminder_agent/llm.py evidence/final-generation/src/reminder_agent/llm.py
+--- evidence/initial-generation/src/reminder_agent/llm.py	2026-11-14 18:50:46.780367400 +0000
++++ evidence/final-generation/src/reminder_agent/llm.py	2026-11-23 04:38:04.359321700 +0000
+@@ -11,13 +11,13 @@
+ from reminder_agent.errors import ServiceError
+ 
+ HOST = "generativelanguage.googleapis.com"
+-TIMEOUT_SECONDS = 60
++TIMEOUT_SECONDS = 120
+ FLASH_MODEL = re.compile(r"models/(gemini-(\d+)\.(\d+)-flash)")
+ SAFE_MODEL_NAME = re.compile(r"[A-Za-z0-9._-]+")
+ 
+ Transport = Callable[[str, str, dict, dict | None], dict]
+ 
+-__all__ = ["GeminiClient", "ServiceError", "choose_model"]
++__all__ = ["GeminiClient", "ServiceError", "choose_model", "service_error_from"]
+ 
+ 
+ def https_transport(method: str, path: str, headers: dict, body: dict | None) -> dict:
+@@ -33,18 +33,43 @@
+     finally:
+         connection.close()
+     if response.status >= 400:
+-        raise ServiceError(f"HTTP {response.status}: {_error_message(text)}")
++        raise service_error_from(response.status, text)
+     try:
+         return json.loads(text)
+     except ValueError as error:
+         raise ServiceError("the model service returned a reply that is not JSON") from error
+ 
+ 
+-def _error_message(text: str) -> str:
++def _seconds(text: object) -> float | None:
+     try:
+-        return str(json.loads(text)["error"]["message"])[:300]
+-    except (ValueError, KeyError, TypeError):
+-        return text[:300]
++        return float(str(text).rstrip("s"))
++    except ValueError:
++        return None
++
++
++def service_error_from(status: int, text: str) -> ServiceError:
++    """Turn an error response into a ServiceError that keeps the quota name and retry hint."""
++    try:
++        error = json.loads(text)["error"]
++        message = str(error.get("message", "")).splitlines()[0]
++        details = error.get("details") or []
++    except (ValueError, KeyError, TypeError, AttributeError, IndexError):
++        return ServiceError(f"HTTP {status}: {text[:300]}")
++    retry_after, quota_id, limit = None, None, None
++    for item in details:
++        kind = str(item.get("@type", ""))
++        if kind.endswith("RetryInfo"):
++            retry_after = _seconds(item.get("retryDelay", ""))
++        if kind.endswith("QuotaFailure") and item.get("violations"):
++            violation = item["violations"][0]
++            quota_id = violation.get("quotaId")
++            limit = violation.get("quotaValue")
++    text_out = f"HTTP {status}: {message[:200]}"
++    if quota_id:
++        text_out += f" [quota {quota_id}, limit {limit}]"
++    if retry_after is not None:
++        text_out += f" [retry after {retry_after:g}s]"
++    return ServiceError(text_out, retry_after=retry_after, quota_id=quota_id)
+ 
+ 
+ def choose_model(names: list[str]) -> str:
+@@ -86,11 +111,18 @@
+     def _headers(self) -> dict:
+         return {"Content-Type": "application/json", "x-goog-api-key": self._settings.api_key}
+ 
++    def list_models(self) -> list[str]:
++        """Return the names of the models this key can use for generateContent."""
++        listing = self._transport("GET", "/v1beta/models?pageSize=1000", self._headers(), None)
++        return [
++            item.get("name", "")
++            for item in listing.get("models", [])
++            if "generateContent" in item.get("supportedGenerationMethods", ["generateContent"])
++        ]
++
+     def _resolve_model(self) -> str:
+         if self.model is None:
+-            listing = self._transport("GET", "/v1beta/models?pageSize=1000", self._headers(), None)
+-            names = [item.get("name", "") for item in listing.get("models", [])]
+-            self.model = choose_model(names)
++            self.model = choose_model(self.list_models())
+         if not SAFE_MODEL_NAME.fullmatch(self.model):
+             raise ServiceError("GEMINI_MODEL contains characters that are not allowed")
+         return self.model

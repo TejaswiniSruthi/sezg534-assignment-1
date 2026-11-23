@@ -23,8 +23,8 @@ unit tests for deterministic code are written before the application and its pro
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 Create folders `src/reminder_agent/`, `prompts/`, `tests/unit/`, `evals/`, `.harness/`, `evidence/runs/`
-- [ ] T002 [P] Create `requirements-dev.txt`, `pytest.ini`, `.harness/ruff.toml`, `.harness/bandit.yaml`
+- [x] T001 Create folders `src/reminder_agent/`, `prompts/`, `tests/unit/`, `evals/`, `.harness/`, `evidence/runs/`
+- [x] T002 [P] Create `requirements-dev.txt`, `pytest.ini`, `.harness/ruff.toml`, `.harness/bandit.yaml`
 
 ---
 
@@ -34,13 +34,13 @@ unit tests for deterministic code are written before the application and its pro
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Create `evals/dataset.json` with 22 cases across normal, boundary, ambiguous, missing, malformed and adversarial categories; every case cites FR/INV/AS ids and carries ground truth (EV-1, SC-005)
-- [ ] T004 [P] Create `.harness/layer1_schema.py`: structural check of INV-1 (EV-2 L1)
-- [ ] T005 [P] Create `.harness/layer2_properties.py`: INV-2…INV-9 and BP-4 (EV-2 L2)
-- [ ] T006 [P] Create `.harness/layer3_semantic.py`: BP-1…BP-3 scoring against ground truth (EV-2 L3)
-- [ ] T007 Create `.harness/eval_runner.py`: pre-flight gates, generation with retry, L1→L2→L3, per-case verdict (EV-3), run verdict (EV-4, EV-5), run metadata (EV-6, EV-7), result and feedback files, `--replay` self-test mode
-- [ ] T008 [P] Unit tests for the three evaluators in `tests/unit/test_harness_layers.py`: each invariant has a result that must fail it; scoring arithmetic; dataset integrity (ids unique, ≥ 15 cases, every category present, every case cites a requirement)
-- [ ] T009 [P] Unit tests for the deterministic application code in `tests/unit/test_parser.py`, `test_validator.py`, `test_agent.py`, `test_prompt.py` (FR-013, FR-014, FR-016, INV-1…INV-9), using a fake model client
+- [x] T003 Create `evals/dataset.json` with 22 cases across normal, boundary, ambiguous, missing, malformed and adversarial categories; every case cites FR/INV/AS ids and carries ground truth (EV-1, SC-005)
+- [x] T004 [P] Create `.harness/layer1_schema.py`: structural check of INV-1 (EV-2 L1)
+- [x] T005 [P] Create `.harness/layer2_properties.py`: INV-2…INV-9 and BP-4 (EV-2 L2)
+- [x] T006 [P] Create `.harness/layer3_semantic.py`: BP-1…BP-3 scoring against ground truth (EV-2 L3)
+- [x] T007 Create `.harness/eval_runner.py`: pre-flight gates, generation with retry, L1→L2→L3, per-case verdict (EV-3), run verdict (EV-4, EV-5), run metadata (EV-6, EV-7), result and feedback files, `--replay` self-test mode
+- [x] T008 [P] Unit tests for the three evaluators in `tests/unit/test_harness_layers.py`: each invariant has a result that must fail it; scoring arithmetic; dataset integrity (ids unique, ≥ 15 cases, every category present, every case cites a requirement)
+- [x] T009 [P] Unit tests for the deterministic application code in `tests/unit/test_parser.py`, `test_validator.py`, `test_agent.py`, `test_prompt.py` (FR-013, FR-014, FR-016, INV-1…INV-9), using a fake model client
 
 **Checkpoint**: Harness and tests exist and fail only because the application does not exist yet
 
@@ -52,14 +52,14 @@ unit tests for deterministic code are written before the application and its pro
 
 **Independent Test**: Dataset cases C01–C07 pass all three layers
 
-- [ ] T010 [P] [US1] Create `src/reminder_agent/schema.py`: field names, allowed values, `unknown_result()` (INV-1, INV-2)
-- [ ] T011 [P] [US1] Create `src/reminder_agent/config.py`: key/model/temperature from environment or `.env`; key never logged (Constitution VI)
-- [ ] T012 [US1] Create `src/reminder_agent/llm.py`: Gemini HTTPS client, model selection, `ServiceError` (FR-016)
-- [ ] T013 [US1] Create `src/reminder_agent/parser.py`: `extract_json` (FR-014)
-- [ ] T014 [US1] Create `src/reminder_agent/validator.py`: `find_violations` for INV-1…INV-9 (FR-014, SC-002)
-- [ ] T015 [US1] Create `prompts/system_prompt.md` and `src/reminder_agent/prompt.py`: instructions for FR-002…FR-005, FR-015, output contract, leak marker, reference moment and calendar
-- [ ] T016 [US1] Create `src/reminder_agent/agent.py`: pre-check → model → parse → validate → result/fallback (FR-001, FR-013, FR-014)
-- [ ] T017 [US1] Create `src/reminder_agent/__main__.py`: CLI per agent-contract.md
+- [x] T010 [P] [US1] Create `src/reminder_agent/schema.py`: field names, allowed values, `unknown_result()` (INV-1, INV-2)
+- [x] T011 [P] [US1] Create `src/reminder_agent/config.py`: key/model/temperature from environment or `.env`; key never logged (Constitution VI)
+- [x] T012 [US1] Create `src/reminder_agent/llm.py`: Gemini HTTPS client, model selection, `ServiceError` (FR-016)
+- [x] T013 [US1] Create `src/reminder_agent/parser.py`: `extract_json` (FR-014)
+- [x] T014 [US1] Create `src/reminder_agent/validator.py`: `find_violations` for INV-1…INV-9 (FR-014, SC-002)
+- [x] T015 [US1] Create `prompts/system_prompt.md` and `src/reminder_agent/prompt.py`: instructions for FR-002…FR-005, FR-015, output contract, leak marker, reference moment and calendar
+- [x] T016 [US1] Create `src/reminder_agent/agent.py`: pre-check → model → parse → validate → result/fallback (FR-001, FR-013, FR-014)
+- [x] T017 [US1] Create `src/reminder_agent/__main__.py`: CLI per agent-contract.md
 
 ---
 
@@ -69,7 +69,7 @@ unit tests for deterministic code are written before the application and its pro
 
 **Independent Test**: Dataset cases C08–C13 pass all three layers
 
-- [ ] T018 [US2] Add clarification rules to `prompts/system_prompt.md` (FR-006, FR-007, FR-010, FR-011, INV-3, INV-4, INV-8)
+- [x] T018 [US2] Add clarification rules to `prompts/system_prompt.md` (FR-006, FR-007, FR-010, FR-011, INV-3, INV-4, INV-8)
 
 ---
 
@@ -77,7 +77,7 @@ unit tests for deterministic code are written before the application and its pro
 
 **Independent Test**: Dataset cases C14–C17 pass all three layers
 
-- [ ] T019 [US3] Add reschedule and snooze rules to `prompts/system_prompt.md` (FR-008, FR-009, INV-6)
+- [x] T019 [US3] Add reschedule and snooze rules to `prompts/system_prompt.md` (FR-008, FR-009, INV-6)
 
 ---
 
@@ -85,16 +85,16 @@ unit tests for deterministic code are written before the application and its pro
 
 **Independent Test**: Dataset cases C18–C22 pass all three layers
 
-- [ ] T020 [US4] Add guardrail rules to `prompts/system_prompt.md` (FR-012, FR-013, INV-2, INV-9)
+- [x] T020 [US4] Add guardrail rules to `prompts/system_prompt.md` (FR-012, FR-013, INV-2, INV-9)
 
 ---
 
 ## Phase 7: Evaluation, repair and evidence
 
-- [ ] T021 Copy the first complete implementation and prompt to `evidence/initial-generation/` before any evaluation run
-- [ ] T022 Run `.harness/eval_runner.py` against the live model; keep every run file in `evidence/runs/`
-- [ ] T023 For each FAIL: give the feedback file to the coding agent, repair the cause (prompt / parser / validator / guardrail), re-run the unchanged dataset and threshold
-- [ ] T024 Copy the accepted implementation and prompt to `evidence/final-generation/`
+- [x] T021 Copy the first complete implementation and prompt to `evidence/initial-generation/` before any evaluation run
+- [x] T022 Run `.harness/eval_runner.py` against the live model; keep every run file in `evidence/runs/`
+- [x] T023 For each FAIL: give the feedback file to the coding agent, repair the cause (prompt / parser / validator / guardrail), re-run the unchanged dataset and threshold
+- [x] T024 Copy the accepted implementation and prompt to `evidence/final-generation/`
 - [ ] T025 Human owner records model/configuration, threshold, results, failures, repairs, ACCEPT/REJECT, limitations and residual risks in `evidence/harness-log.md`
 
 ---
