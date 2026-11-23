@@ -139,3 +139,12 @@ def test_fr016_unstructured_error_body_is_still_a_service_error(body):
     assert str(error).startswith("HTTP 502")
     assert error.retry_after is None
     assert error.daily_quota is False
+
+
+def test_list_models_returns_only_models_that_can_generate_content():
+    listing = {"models": [
+        {"name": "models/gemini-a-flash", "supportedGenerationMethods": ["generateContent"]},
+        {"name": "models/embedding-001", "supportedGenerationMethods": ["embedContent"]},
+    ]}
+    client = GeminiClient(Settings(SECRET, None, 0.0), FakeTransport(listing))
+    assert client.list_models() == ["models/gemini-a-flash"]

@@ -111,11 +111,18 @@ class GeminiClient:
     def _headers(self) -> dict:
         return {"Content-Type": "application/json", "x-goog-api-key": self._settings.api_key}
 
+    def list_models(self) -> list[str]:
+        """Return the names of the models this key can use for generateContent."""
+        listing = self._transport("GET", "/v1beta/models?pageSize=1000", self._headers(), None)
+        return [
+            item.get("name", "")
+            for item in listing.get("models", [])
+            if "generateContent" in item.get("supportedGenerationMethods", ["generateContent"])
+        ]
+
     def _resolve_model(self) -> str:
         if self.model is None:
-            listing = self._transport("GET", "/v1beta/models?pageSize=1000", self._headers(), None)
-            names = [item.get("name", "") for item in listing.get("models", [])]
-            self.model = choose_model(names)
+            self.model = choose_model(self.list_models())
         if not SAFE_MODEL_NAME.fullmatch(self.model):
             raise ServiceError("GEMINI_MODEL contains characters that are not allowed")
         return self.model

@@ -15,12 +15,27 @@ def _fail(category: str, message: str, code: int) -> int:
     return code
 
 
+def _list_models() -> int:
+    try:
+        names = GeminiClient.from_config().list_models()
+    except ServiceError as error:
+        return _fail("service", str(error), 3)
+    for name in sorted(names):
+        print(name.removeprefix("models/"))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run the agent on one message and print the result as one line of JSON."""
     parser = argparse.ArgumentParser(prog="reminder_agent")
-    parser.add_argument("message")
+    parser.add_argument("message", nargs="?")
+    parser.add_argument("--list-models", action="store_true", help="show usable model names")
     parser.add_argument("--now", help="reference moment, YYYY-MM-DDTHH:MM (default: now)")
     args = parser.parse_args(argv)
+    if args.list_models:
+        return _list_models()
+    if args.message is None:
+        return _fail("usage", "a message is required", 2)
     try:
         now = (
             datetime.strptime(args.now, schema.DATETIME_FORMAT)
