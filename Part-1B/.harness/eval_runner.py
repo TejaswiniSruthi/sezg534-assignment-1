@@ -47,7 +47,8 @@ MAX_L1_FAILURES = 0
 MIN_CASES = 15
 
 MAX_ATTEMPTS = 3
-BACKOFF_SECONDS = (10, 25, 50)
+BACKOFF_SECONDS = (20, 60)
+MAX_WAIT_SECONDS = 120
 MARKER_PATTERN = re.compile(r"RA-MARKER-[0-9A-F]{8}")
 DATASET = ROOT / "evals" / "dataset.json"
 PROMPT = ROOT / "prompts" / "system_prompt.md"
@@ -95,21 +96,32 @@ class ReplayClient:
         return self.replies[user_text]
 
 
-def generate(agent, service_error, message: str, reference: datetime, delay: float) -> dict:
-    """Stage 1 for one case, retrying only on model-service failures."""
-    last_error = None
+def not_generated(reason: str, attempts: int, stop: bool = False) -> dict:
+    return {"output": None, "source": None, "raw_reply": None, "app_violations": [],
+            "attempts": attempts, "service_error": reason, "stop": stop}
+
+
+def generate(agent, service_error, message: str, reference: datetime, delay: float,
+             sleep=time.sleep) -> dict:
+    """Stage 1 for one case, retrying only on model-service failures.
+
+    A used-up daily quota cannot recover by retrying, so it stops at once and
+    asks the runner to stop calling the model for the rest of the run.
+    """
     for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
             outcome = agent.parse(message, reference)
             return {"output": outcome.result, "source": outcome.source,
                     "raw_reply": outcome.raw_reply, "app_violations": outcome.violations,
-                    "attempts": attempt, "service_error": None}
+                    "attempts": attempt, "service_error": None, "stop": False}
         except service_error as error:
-            last_error = str(error)
-            if attempt < MAX_ATTEMPTS:
-                time.sleep(BACKOFF_SECONDS[attempt - 1] if delay else 0)
-    return {"output": None, "source": None, "raw_reply": None, "app_violations": [],
-            "attempts": MAX_ATTEMPTS, "service_error": last_error}
+            if getattr(error, "daily_quota", False):
+                return not_generated(str(error), attempt, stop=True)
+            if attempt == MAX_ATTEMPTS:
+                return not_generated(str(error), attempt)
+            wait = max(BACKOFF_SECONDS[attempt - 1], getattr(error, "retry_after", None) or 0)
+            sleep(min(wait, MAX_WAIT_SECONDS) if delay else 0)
+    raise AssertionError("unreachable")
 
 
 def judge(case: dict, generated: dict, reference: datetime, marker: str) -> dict:
@@ -253,7 +265,8 @@ def write_files(result: dict, self_test: bool) -> Path:
 def main() -> int:
     options = argparse.ArgumentParser(description="Part 1B evaluation harness")
     options.add_argument("--replay", type=Path, help="offline self-test with recorded replies")
-    options.add_argument("--delay", type=float, default=4.0, help="seconds between model calls")
+    options.add_argument("--delay", type=float, default=12.0,
+                         help="seconds between model calls (free tier: about 5 per minute)")
     args = options.parse_args()
 
     started = datetime.now(timezone.utc)
@@ -284,12 +297,20 @@ def main() -> int:
             return 2
         agent = ReminderAgent(client)
         delay = 0.0 if args.replay else args.delay
+        stopped = None
         for number, case in enumerate(cases, 1):
-            print(f"  [{number}/{len(cases)}] {case['id']} ...", flush=True)
-            generated = generate(agent, ServiceError, case["message"], reference, delay)
+            if stopped:
+                generated = not_generated(f"not attempted: {stopped}", 0)
+            else:
+                print(f"  [{number}/{len(cases)}] {case['id']} ...", flush=True)
+                generated = generate(agent, ServiceError, case["message"], reference, delay)
+                if generated.pop("stop"):
+                    stopped = "daily request quota used up earlier in this run"
+                    print(f"  stopping model calls: {generated['service_error']}", flush=True)
+                elif generated["source"] != "precheck":
+                    time.sleep(delay)
+            generated.pop("stop", None)
             records.append(judge(case, generated, reference, marker.group(0)))
-            if generated["source"] != "precheck":
-                time.sleep(delay)
         model, temperature = client.model, client.temperature
 
     summary = summarise(records)

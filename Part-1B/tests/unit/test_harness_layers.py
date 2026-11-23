@@ -302,3 +302,58 @@ def test_ev7_weekday_ground_truth_is_consistent(dataset):
     assert datetime.fromisoformat(by_id["C04"]["datetime"]).strftime("%A") == "Friday"
     assert datetime.fromisoformat(by_id["C07"]["datetime"]).strftime("%A") == "Monday"
     assert datetime.fromisoformat(by_id["C14"]["datetime"]).strftime("%A") == "Friday"
+
+
+# --- Stage 1 retry policy (EV-5) ------------------------------------------------
+
+class FlakyAgent:
+    def __init__(self, errors):
+        self.errors = list(errors)
+        self.calls = 0
+
+    def parse(self, message, reference):
+        self.calls += 1
+        if self.errors:
+            raise self.errors.pop(0)
+        return type("Outcome", (), {"result": UNKNOWN, "source": "model", "raw_reply": "{}",
+                                    "violations": []})()
+
+
+class FakeServiceError(Exception):
+    def __init__(self, message, retry_after=None, daily=False):
+        super().__init__(message)
+        self.retry_after = retry_after
+        self.daily_quota = daily
+
+
+def test_ev5_transient_error_is_retried_then_succeeds():
+    waits = []
+    agent = FlakyAgent([FakeServiceError("HTTP 503", retry_after=5)])
+    generated = eval_runner.generate(agent, FakeServiceError, "m", NOW, 1, sleep=waits.append)
+    assert generated["service_error"] is None
+    assert generated["attempts"] == 2
+    assert waits == [eval_runner.BACKOFF_SECONDS[0]]
+
+
+def test_ev5_retry_hint_longer_than_backoff_is_honoured_but_capped():
+    waits = []
+    agent = FlakyAgent([FakeServiceError("429", retry_after=45),
+                        FakeServiceError("429", retry_after=900)])
+    eval_runner.generate(agent, FakeServiceError, "m", NOW, 1, sleep=waits.append)
+    assert waits == [45, eval_runner.MAX_WAIT_SECONDS]
+
+
+def test_ev5_daily_quota_stops_without_retrying():
+    agent = FlakyAgent([FakeServiceError("429 per day", daily=True)])
+    generated = eval_runner.generate(agent, FakeServiceError, "m", NOW, 1, sleep=lambda _: None)
+    assert agent.calls == 1
+    assert generated["stop"] is True
+    assert generated["service_error"] == "429 per day"
+
+
+def test_ev5_persistent_error_is_a_service_error_after_max_attempts():
+    agent = FlakyAgent([FakeServiceError("503")] * eval_runner.MAX_ATTEMPTS)
+    generated = eval_runner.generate(agent, FakeServiceError, "m", NOW, 1, sleep=lambda _: None)
+    assert agent.calls == eval_runner.MAX_ATTEMPTS
+    assert generated["service_error"] == "503"
+    assert generated["stop"] is False

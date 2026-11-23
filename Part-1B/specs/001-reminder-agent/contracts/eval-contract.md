@@ -65,6 +65,19 @@ On FAIL the runner also writes `evidence/runs/<run_id>-feedback.md`: for each fa
 message, generated output, failed requirement or property, and layer results, ready to hand to the
 coding agent.
 
+## Retry policy for model-service errors (revised 2026-11-23 after live run 1)
+
+Live run 1 was INCOMPLETE: 21 of 22 cases hit HTTP 503, read time-outs or HTTP 429 quota errors,
+and the fixed retries spent more of the free quota. Revised policy (no change to the dataset,
+expected values, scoring or threshold):
+
+- Up to 3 attempts per case; wait 20 s, then 60 s, or the service's own retry hint if longer
+  (capped at 120 s). Default pause between cases: 12 s (about 5 requests per minute).
+- A per-day quota error stops model calls for the rest of the run; remaining cases are recorded as
+  `service_error` ("not attempted") and the run is INCOMPLETE, as EV-5 already requires.
+- Service-error messages keep the quota name and limit, so the evidence shows which quota was hit.
+- Read time-out raised from 60 s to 120 s.
+
 ## Options
 
 - `--replay FILE`: take model replies from a JSON file `{message: reply_text}` instead of calling

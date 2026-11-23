@@ -11,13 +11,13 @@ from reminder_agent.config import Settings, load_settings
 from reminder_agent.errors import ServiceError
 
 HOST = "generativelanguage.googleapis.com"
-TIMEOUT_SECONDS = 60
+TIMEOUT_SECONDS = 120
 FLASH_MODEL = re.compile(r"models/(gemini-(\d+)\.(\d+)-flash)")
 SAFE_MODEL_NAME = re.compile(r"[A-Za-z0-9._-]+")
 
 Transport = Callable[[str, str, dict, dict | None], dict]
 
-__all__ = ["GeminiClient", "ServiceError", "choose_model"]
+__all__ = ["GeminiClient", "ServiceError", "choose_model", "service_error_from"]
 
 
 def https_transport(method: str, path: str, headers: dict, body: dict | None) -> dict:
@@ -33,18 +33,43 @@ def https_transport(method: str, path: str, headers: dict, body: dict | None) ->
     finally:
         connection.close()
     if response.status >= 400:
-        raise ServiceError(f"HTTP {response.status}: {_error_message(text)}")
+        raise service_error_from(response.status, text)
     try:
         return json.loads(text)
     except ValueError as error:
         raise ServiceError("the model service returned a reply that is not JSON") from error
 
 
-def _error_message(text: str) -> str:
+def _seconds(text: object) -> float | None:
     try:
-        return str(json.loads(text)["error"]["message"])[:300]
-    except (ValueError, KeyError, TypeError):
-        return text[:300]
+        return float(str(text).rstrip("s"))
+    except ValueError:
+        return None
+
+
+def service_error_from(status: int, text: str) -> ServiceError:
+    """Turn an error response into a ServiceError that keeps the quota name and retry hint."""
+    try:
+        error = json.loads(text)["error"]
+        message = str(error.get("message", "")).splitlines()[0]
+        details = error.get("details") or []
+    except (ValueError, KeyError, TypeError, AttributeError, IndexError):
+        return ServiceError(f"HTTP {status}: {text[:300]}")
+    retry_after, quota_id, limit = None, None, None
+    for item in details:
+        kind = str(item.get("@type", ""))
+        if kind.endswith("RetryInfo"):
+            retry_after = _seconds(item.get("retryDelay", ""))
+        if kind.endswith("QuotaFailure") and item.get("violations"):
+            violation = item["violations"][0]
+            quota_id = violation.get("quotaId")
+            limit = violation.get("quotaValue")
+    text_out = f"HTTP {status}: {message[:200]}"
+    if quota_id:
+        text_out += f" [quota {quota_id}, limit {limit}]"
+    if retry_after is not None:
+        text_out += f" [retry after {retry_after:g}s]"
+    return ServiceError(text_out, retry_after=retry_after, quota_id=quota_id)
 
 
 def choose_model(names: list[str]) -> str:
